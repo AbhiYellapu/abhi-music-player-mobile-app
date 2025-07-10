@@ -192,9 +192,9 @@ export default function PlaylistsScreen() {
     },
   });
 
-  const handleCreatePlaylist = () => {
+  const handleCreatePlaylist = async () => {
     if (newPlaylistName.trim()) {
-      createPlaylist(newPlaylistName.trim());
+      await createPlaylist(newPlaylistName.trim());
       setNewPlaylistName('');
       setIsCreateModalVisible(false);
     }

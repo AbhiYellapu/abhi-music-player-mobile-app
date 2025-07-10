@@ -1,10 +1,15 @@
 {
   "expo": {
-    "name": "bolt-expo-nativewind",
+    "name": "Abhi's Music Player",
     "slug": "bolt-expo-nativewind",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#181a2a"
+    },
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -29,6 +34,9 @@
       "eas": {
         "projectId": "500d398d-10cc-4c75-b6c3-91129fc7064a"
       }
+    },
+    "android": {
+      "package": "com.abhikumar4014.boltexponativewind"
     }
   }
 }

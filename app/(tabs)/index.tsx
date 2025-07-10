@@ -6,6 +6,7 @@ import { FilterPanel } from '@/components/FilterPanel';
 import { useMusicContext } from '@/contexts/MusicContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Song } from '@/types/music';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function LibraryScreen() {
   const {
@@ -27,21 +28,30 @@ export default function LibraryScreen() {
       backgroundColor: colors.background,
     },
     header: {
-      paddingTop: 20,
-      paddingHorizontal: 16,
-      paddingBottom: 16,
+      paddingTop: 32,
+      paddingHorizontal: 20,
+      paddingBottom: 8,
+      backgroundColor: colors.background,
     },
     title: {
-      fontSize: 28,
+      fontSize: 32,
       fontFamily: 'Inter-Bold',
       color: colors.text,
-      marginBottom: 8,
+      marginBottom: 2,
+      letterSpacing: -1,
     },
     subtitle: {
-      fontSize: 16,
-      fontFamily: 'Inter-Regular',
+      fontSize: 15,
+      fontFamily: 'Inter-Medium',
       color: colors.textSecondary,
-      marginBottom: 20,
+      marginBottom: 12,
+      letterSpacing: 0.2,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginHorizontal: 20,
+      opacity: 0.12,
     },
     emptyContainer: {
       flex: 1,
@@ -64,12 +74,10 @@ export default function LibraryScreen() {
     },
   });
 
-  const renderSongItem = ({ item, index }: { item: Song; index: number }) => (
+  const renderSongItem = ({ item }: { item: Song }) => (
     <SongItem
       song={item}
       onPlay={() => playSong(item, filteredSongs)}
-      showIndex
-      index={index}
     />
   );
 
@@ -83,7 +91,13 @@ export default function LibraryScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <LinearGradient
+        colors={[colors.background, '#1e215d', '#181a2a']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
       <View style={styles.header}>
         <Text style={styles.title}>Your Library</Text>
         <Text style={styles.subtitle}>
@@ -109,6 +123,7 @@ export default function LibraryScreen() {
         data={filteredSongs}
         keyExtractor={(item) => item.id}
         renderItem={renderSongItem}
+        ItemSeparatorComponent={() => <View style={styles.divider} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
         ListEmptyComponent={EmptyState}

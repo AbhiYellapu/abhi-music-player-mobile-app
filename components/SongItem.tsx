@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Modal, ScrollView, Alert, TextInput } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Modal, ScrollView, Alert, TextInput, Animated } from 'react-native';
 import { Heart, MoveHorizontal as MoreHorizontal, Play, Plus, Music } from 'lucide-react-native';
 import { Song } from '@/types/music';
 import { useMusicContext } from '@/contexts/MusicContext';
@@ -25,6 +25,7 @@ export const SongItem: React.FC<SongItemProps> = ({
   const [showPlaylistModal, setShowPlaylistModal] = React.useState(false);
   const [showCreatePlaylist, setShowCreatePlaylist] = React.useState(false);
   const [newPlaylistName, setNewPlaylistName] = React.useState('');
+  const scaleAnim = useRef(new Animated.Value(1)).current;
   
   const isFavorite = favorites.some(f => f.id === song.id);
   const isCurrentSong = playbackState.currentSong?.id === song.id;
@@ -47,9 +48,9 @@ export const SongItem: React.FC<SongItemProps> = ({
     Alert.alert('Success', `Added "${song.title}" to playlist`);
   };
 
-  const handleCreateAndAddToPlaylist = () => {
+  const handleCreateAndAddToPlaylist = async () => {
     if (newPlaylistName.trim()) {
-      const playlistId = createPlaylist(newPlaylistName.trim());
+      const playlistId = await createPlaylist(newPlaylistName.trim());
       addToPlaylist(playlistId, song);
       setNewPlaylistName('');
       setShowCreatePlaylist(false);
@@ -58,21 +59,47 @@ export const SongItem: React.FC<SongItemProps> = ({
     }
   };
 
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+      speed: 30,
+      bounciness: 8,
+    }).start();
+  };
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 30,
+      bounciness: 8,
+    }).start();
+  };
+
   const styles = StyleSheet.create({
+    animatedContainer: {
+      marginHorizontal: 0,
+    },
     container: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: isCurrentSong ? colors.surfaceElevated : 'transparent',
-      borderRadius: 8,
-      marginHorizontal: 16,
-      marginVertical: 2,
+      paddingVertical: 14,
+      backgroundColor: isCurrentSong ? colors.surfaceElevated : colors.surface,
+      borderRadius: 16,
+      marginHorizontal: 4,
+      marginVertical: 6,
+      shadowColor: colors.text,
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2,
     },
     indexContainer: {
       width: 32,
       alignItems: 'center',
-      marginRight: 12,
+      marginRight: 0, // Remove extra margin for a tighter look
+      justifyContent: 'center',
     },
     indexText: {
       color: colors.textMuted,
@@ -80,10 +107,10 @@ export const SongItem: React.FC<SongItemProps> = ({
       fontFamily: 'Inter-Regular',
     },
     artwork: {
-      width: 48,
-      height: 48,
-      borderRadius: 6,
-      marginRight: 12,
+      width: 56,
+      height: 56,
+      borderRadius: 10,
+      marginRight: 14,
     },
     playIconContainer: {
       position: 'absolute',
@@ -92,19 +119,30 @@ export const SongItem: React.FC<SongItemProps> = ({
       right: 0,
       bottom: 0,
       backgroundColor: colors.overlay,
-      borderRadius: 6,
+      borderRadius: 10,
       justifyContent: 'center',
       alignItems: 'center',
     },
+    artworkShadowWrap: {
+      shadowColor: colors.primary,
+      shadowOpacity: 0.18,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 6,
+      borderRadius: 12,
+      marginRight: 10,
+      backgroundColor: 'transparent',
+    },
     content: {
       flex: 1,
-      marginRight: 12,
+      marginRight: 8,
     },
     title: {
-      fontSize: 16,
-      fontFamily: 'Inter-Medium',
+      fontSize: 17,
+      fontFamily: 'Inter-SemiBold',
       color: isCurrentSong ? colors.primary : colors.text,
-      marginBottom: 4,
+      marginBottom: 2,
+      letterSpacing: -0.2,
     },
     details: {
       flexDirection: 'row',
@@ -112,7 +150,7 @@ export const SongItem: React.FC<SongItemProps> = ({
       flexWrap: 'wrap',
     },
     detailText: {
-      fontSize: 14,
+      fontSize: 13,
       color: colors.textSecondary,
       fontFamily: 'Inter-Regular',
     },
@@ -126,7 +164,7 @@ export const SongItem: React.FC<SongItemProps> = ({
     },
     actionButton: {
       padding: 8,
-      marginLeft: 4,
+      marginLeft: 2,
     },
     modalOverlay: {
       flex: 1,
@@ -253,69 +291,72 @@ export const SongItem: React.FC<SongItemProps> = ({
 
   return (
     <>
-      <TouchableOpacity style={styles.container} onPress={onPlay} activeOpacity={0.7}>
-        {showIndex && (
+      <Animated.View style={[styles.animatedContainer, { transform: [{ scale: scaleAnim }] }]}> 
+        <TouchableOpacity
+          style={styles.container}
+          onPress={onPlay}
+          activeOpacity={0.8}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+        >
+          {/* Replace serial number with music note icon for queue style */}
           <View style={styles.indexContainer}>
-            <Text style={styles.indexText}>{index! + 1}</Text>
+            <Music size={20} color={colors.textMuted} />
           </View>
-        )}
-        
-        <View style={{ position: 'relative' }}>
-          <Image source={{ uri: song.artwork }} style={styles.artwork} />
-          {isPlaying && (
-            <View style={styles.playIconContainer}>
-              <Play size={20} color={colors.primary} fill={colors.primary} />
+          <View style={styles.artworkShadowWrap}>
+            <Image source={{ uri: song.artwork }} style={styles.artwork} />
+            {isPlaying && (
+              <View style={styles.playIconContainer}>
+                <Play size={20} color={colors.primary} fill={colors.primary} />
+              </View>
+            )}
+          </View>
+          <View style={styles.content}>
+            <Text style={styles.title} numberOfLines={1}>
+              {song.title}
+            </Text>
+            <View style={styles.details}>
+              <Text style={styles.detailText} numberOfLines={1}>
+                {song.artist}
+              </Text>
+              <Text style={styles.separator}>•</Text>
+              <Text style={styles.detailText} numberOfLines={1}>
+                {song.album}
+              </Text>
+              <Text style={styles.separator}>•</Text>
+              <Text style={styles.detailText}>
+                {formatDuration(song.duration)}
+              </Text>
+              <Text style={styles.separator}>•</Text>
+              <Text style={styles.detailText}>
+                {formatFileSize(song.size)}
+              </Text>
+              <Text style={styles.separator}>•</Text>
+              <Text style={styles.detailText}>
+                {song.fileType.toUpperCase()}
+              </Text>
             </View>
-          )}
-        </View>
-
-        <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={1}>
-            {song.title}
-          </Text>
-          <View style={styles.details}>
-            <Text style={styles.detailText} numberOfLines={1}>
-              {song.artist}
-            </Text>
-            <Text style={styles.separator}>•</Text>
-            <Text style={styles.detailText} numberOfLines={1}>
-              {song.album}
-            </Text>
-            <Text style={styles.separator}>•</Text>
-            <Text style={styles.detailText}>
-              {formatDuration(song.duration)}
-            </Text>
-            <Text style={styles.separator}>•</Text>
-            <Text style={styles.detailText}>
-              {formatFileSize(song.size)}
-            </Text>
-            <Text style={styles.separator}>•</Text>
-            <Text style={styles.detailText}>
-              {song.fileType.toUpperCase()}
-            </Text>
           </View>
-        </View>
-
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => toggleFavorite(song.id)}
-            activeOpacity={0.7}
-          >
-            <Heart
-              size={20}
-              color={isFavorite ? colors.error : colors.textMuted}
-              fill={isFavorite ? colors.error : 'transparent'}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => setShowPlaylistModal(true)}
-            activeOpacity={0.7}
-          >
-            <Plus size={20} color={colors.textMuted} />
-          </TouchableOpacity>
-          {onMore && (
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => toggleFavorite(song.id)}
+              activeOpacity={0.7}
+            >
+              <Heart
+                size={20}
+                color={isFavorite ? colors.error : colors.textMuted}
+                fill={isFavorite ? colors.error : 'transparent'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => setShowPlaylistModal(true)}
+              activeOpacity={0.7}
+            >
+              <Plus size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+            {/* Always show three-dot menu */}
             <TouchableOpacity
               style={styles.actionButton}
               onPress={onMore}
@@ -323,9 +364,9 @@ export const SongItem: React.FC<SongItemProps> = ({
             >
               <MoreHorizontal size={20} color={colors.textMuted} />
             </TouchableOpacity>
-          )}
-        </View>
-      </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
 
       <Modal
         visible={showPlaylistModal}

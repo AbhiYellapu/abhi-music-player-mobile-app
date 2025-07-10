@@ -4,6 +4,7 @@ import { Play, Pause, SkipForward, Heart, List } from 'lucide-react-native';
 import { useMusicContext } from '@/contexts/MusicContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { QueueManager } from './QueueManager';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface MiniPlayerProps {
   onPress: () => void;
@@ -23,25 +24,43 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surfaceElevated,
+      backgroundColor: 'transparent',
       paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
+      paddingVertical: 10,
+      borderTopWidth: 0,
+      borderRadius: 18,
+      marginHorizontal: 16,
+      marginBottom: 12,
+      shadowColor: colors.text,
+      shadowOpacity: 0.10,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 8,
+      minHeight: 64,
+    },
+    gradient: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: 18,
+      zIndex: -1,
     },
     artwork: {
       width: 48,
       height: 48,
-      borderRadius: 6,
+      borderRadius: 10,
       marginRight: 12,
+      shadowColor: colors.primary,
+      shadowOpacity: 0.18,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 6,
     },
     content: {
       flex: 1,
       marginRight: 12,
     },
     title: {
-      fontSize: 14,
-      fontFamily: 'Inter-Medium',
+      fontSize: 16,
+      fontFamily: 'Inter-Bold',
       color: colors.text,
       marginBottom: 2,
     },
@@ -62,9 +81,14 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
 
   return (
     <>
-      <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.8}>
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#23244d', colors.surfaceElevated, '#181a2a']}
+          style={styles.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
         <Image source={{ uri: currentSong.artwork }} style={styles.artwork} />
-        
         <View style={styles.content}>
           <Text style={styles.title} numberOfLines={1}>
             {currentSong.title}
@@ -73,7 +97,6 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
             {currentSong.artist}
           </Text>
         </View>
-
         <View style={styles.controls}>
           <TouchableOpacity
             style={styles.controlButton}
@@ -82,7 +105,6 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
           >
             <List size={18} color={colors.textMuted} />
           </TouchableOpacity>
-          
           <TouchableOpacity
             style={styles.controlButton}
             onPress={() => toggleFavorite(currentSong.id)}
@@ -94,7 +116,6 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
               fill={isFavorite ? colors.error : 'transparent'}
             />
           </TouchableOpacity>
-          
           <TouchableOpacity
             style={styles.controlButton}
             onPress={isPlaying ? pausePlayback : resumePlayback}
@@ -106,7 +127,6 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
               <Play size={24} color={colors.text} fill={colors.text} />
             )}
           </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.controlButton}
             onPress={skipToNext}
@@ -115,8 +135,7 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
             <SkipForward size={20} color={colors.textMuted} />
           </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-      
+      </View>
       <QueueManager 
         visible={showQueue} 
         onClose={() => setShowQueue(false)} 

@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import { Song, Playlist, PlaybackState, SortOption, SortDirection, FilterType } from '@/types/music';
-import { loadDeviceSongs } from '@/lib/sampleSongs';
+import { loadDeviceSongs } from '@/lib/loadDeviceSongs';
 
 interface MusicContextType {
   songs: Song[];
@@ -28,7 +28,7 @@ interface MusicContextType {
   setSearchQuery: (query: string) => void;
   setSortBy: (sortBy: SortOption, direction: SortDirection) => void;
   setFilterType: (filterType: FilterType) => void;
-  createPlaylist: (name: string) => string;
+  createPlaylist: (name: string) => Promise<string>;
   addToPlaylist: (playlistId: string, song: Song) => void;
   removeFromPlaylist: (playlistId: string, songId: string) => void;
   deletePlaylist: (playlistId: string) => void;
@@ -48,9 +48,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [favorites, setFavorites] = useState<Song[]>([]);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortByState] = useState<SortOption>('title');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [sortBy, setSortByState] = useState<SortOption>('dateAdded');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [filterType, setFilterType] = useState<FilterType>('mp3');
   const [playbackState, setPlaybackState] = useState<PlaybackState>({
     isPlaying: false,
     currentSong: null,
@@ -64,8 +64,13 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     const fetchSongs = async () => {
-      const deviceSongs = await loadDeviceSongs();
-      setSongs(deviceSongs);
+      try {
+        const deviceSongs = await loadDeviceSongs();
+        setSongs(deviceSongs || []);
+      } catch (error) {
+        console.error('Error loading device songs:', error);
+        setSongs([]);
+      }
     };
     fetchSongs();
   }, []);
@@ -75,9 +80,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
-        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_MIX_WITH_OTHERS,
         shouldDuckAndroid: true,
-        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
         staysActiveInBackground: true,
       });
     }
@@ -110,16 +113,53 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         AsyncStorage.getItem('playlists'),
         AsyncStorage.getItem('playbackState')
       ]);
-      setFavorites(JSON.parse(savedFavorites || '[]'));
-      setPlaylists(JSON.parse(savedPlaylists || '[]'));
+      
+      // Parse favorites with error handling
+      let parsedFavorites: Song[] = [];
+      if (savedFavorites) {
+        try {
+          const parsed = JSON.parse(savedFavorites);
+          parsedFavorites = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          parsedFavorites = [];
+        }
+      }
+      setFavorites(parsedFavorites);
+      
+      // Parse playlists with error handling
+      let parsedPlaylists: Playlist[] = [];
+      if (savedPlaylists) {
+        try {
+          const parsed = JSON.parse(savedPlaylists);
+          parsedPlaylists = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          parsedPlaylists = [];
+        }
+      }
+      setPlaylists(parsedPlaylists);
+      
+      // Parse playback state with error handling
       if (savedPlaybackState) {
-        setPlaybackState(prev => ({ ...prev, ...JSON.parse(savedPlaybackState) }));
+        try {
+          const state = JSON.parse(savedPlaybackState);
+          setPlaybackState(prev => ({ ...prev, ...state }));
+        } catch (error) {
+          console.error('Error parsing playback state:', error);
+        }
       }
     } catch (error) {
       console.error('Error loading saved data:', error);
+      setFavorites([]);
+      setPlaylists([]);
     }
   };
 
+  const savePlaylists = async (playlists: Playlist[]) => {
+    setPlaylists(playlists);
+    await AsyncStorage.setItem('playlists', JSON.stringify(playlists));
+  };
+
+  
   const savePlaybackState = async (state: Partial<PlaybackState>) => {
     try {
       await AsyncStorage.setItem('playbackState', JSON.stringify(state));
@@ -138,8 +178,16 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setPlaybackState(prev => ({ ...prev, ...newState }));
       await savePlaybackState(newState);
       newSound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) skipToNext();
+        if (status.isLoaded && status.didJustFinish) {
+          if (playbackState.repeat === 'one') {
+            playSong(playbackState.currentSong!, playbackState.queue);
+          } else {
+            skipToNext();
+          }
+        }
       });
+      
+      
     } catch (error) {
       console.error('Error playing song:', error);
     }
@@ -176,66 +224,76 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSortDirection(direction);
   };
 
-  const createPlaylist = (name: string) => {
-    const newPlaylist: Playlist = { id: Date.now().toString(), name, songs: [], createdAt: new Date().toISOString() };
+  const createPlaylist = async (name: string) => {
+    const newPlaylist: Playlist = { 
+      id: Date.now().toString(), 
+      name, 
+      songs: [], 
+      createdAt: new Date().toISOString() 
+    };
     const newPlaylists = [...playlists, newPlaylist];
     setPlaylists(newPlaylists);
-    AsyncStorage.setItem('playlists', JSON.stringify(newPlaylists));
+    await AsyncStorage.setItem('playlists', JSON.stringify(newPlaylists));
     return newPlaylist.id;
   };
 
-  const addToPlaylist = (playlistId: string, song: Song) => {
+  const addToPlaylist = async (playlistId: string, song: Song) => {
     const newPlaylists = playlists.map(playlist =>
       playlist.id === playlistId && !playlist.songs.some(s => s.id === song.id)
         ? { ...playlist, songs: [...playlist.songs, song] }
         : playlist
     );
     setPlaylists(newPlaylists);
-    AsyncStorage.setItem('playlists', JSON.stringify(newPlaylists));
+    await AsyncStorage.setItem('playlists', JSON.stringify(newPlaylists));
   };
 
-  const removeFromPlaylist = (playlistId: string, songId: string) => {
+  const removeFromPlaylist = async (playlistId: string, songId: string) => {
     const newPlaylists = playlists.map(playlist =>
       playlist.id === playlistId ? { ...playlist, songs: playlist.songs.filter(s => s.id !== songId) } : playlist
     );
     setPlaylists(newPlaylists);
-    AsyncStorage.setItem('playlists', JSON.stringify(newPlaylists));
+    await AsyncStorage.setItem('playlists', JSON.stringify(newPlaylists));
   };
 
-  const deletePlaylist = (playlistId: string) => {
+  const deletePlaylist = async (playlistId: string) => {
     const newPlaylists = playlists.filter(p => p.id !== playlistId);
     setPlaylists(newPlaylists);
-    AsyncStorage.setItem('playlists', JSON.stringify(newPlaylists));
+    await AsyncStorage.setItem('playlists', JSON.stringify(newPlaylists));
   };
 
   const clearQueue = () => setPlaybackState(prev => ({ ...prev, queue: [], currentIndex: 0 }));
 
   const filteredSongs = React.useMemo(() => {
-    let filtered = (songs ?? []).filter(song => {
-      const matchesSearch = !searchQuery ||
-        song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        song.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        song.album.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesFilter = filterType === 'all' || song.fileType === filterType;
-      return matchesSearch && matchesFilter;
-    });
-
-    filtered.sort((a, b) => {
-      let aValue: any = a[sortBy];
-      let bValue: any = b[sortBy];
-      if (sortBy === 'dateAdded') {
-        aValue = new Date(aValue).getTime();
-        bValue = new Date(bValue).getTime();
-      }
-      if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-      return sortDirection === 'asc' ? (aValue < bValue ? -1 : aValue > bValue ? 1 : 0) : (aValue > bValue ? -1 : aValue < bValue ? 1 : 0);
-    });
-
+    let filtered: Song[] = [];
+    if (filterType === 'queue') {
+      // Show only songs in the current queue after the current song (playing next)
+      const { queue, currentIndex } = playbackState;
+      filtered = queue.slice(currentIndex + 1);
+    } else {
+      filtered = (songs ?? []).filter(song => {
+        const matchesSearch = !searchQuery ||
+          song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          song.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          song.album.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesFilter = filterType === 'all' || song.fileType === filterType;
+        return matchesSearch && matchesFilter;
+      });
+      filtered.sort((a, b) => {
+        let aValue: any = a[sortBy];
+        let bValue: any = b[sortBy];
+        if (sortBy === 'dateAdded') {
+          aValue = new Date(aValue).getTime();
+          bValue = new Date(bValue).getTime();
+        }
+        if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+        return sortDirection === 'asc' ? (aValue < bValue ? -1 : aValue > bValue ? 1 : 0) : (aValue > bValue ? -1 : aValue < bValue ? 1 : 0);
+      });
+    }
     return filtered;
-  }, [songs, searchQuery, sortBy, sortDirection, filterType]);
+  }, [songs, searchQuery, sortBy, sortDirection, filterType, playbackState]);
 
   return <MusicContext.Provider value={{ songs, playlists, favorites, playbackState, sound, searchQuery, sortBy, sortDirection, filterType, filteredSongs, playSong, pausePlayback, resumePlayback, skipToNext, skipToPrevious, seekTo, toggleShuffle, toggleRepeat, toggleFavorite, setSearchQuery, setSortBy, setFilterType, createPlaylist, addToPlaylist, removeFromPlaylist, deletePlaylist, clearQueue }}>{children}</MusicContext.Provider>;
 };

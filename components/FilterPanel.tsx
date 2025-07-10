@@ -36,6 +36,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     { key: 'mp3', label: 'MP3' },
     { key: 'wav', label: 'WAV' },
     { key: 'aac', label: 'AAC' },
+    { key: 'queue', label: 'Queue (Playing Next)' },
   ];
 
   const styles = StyleSheet.create({

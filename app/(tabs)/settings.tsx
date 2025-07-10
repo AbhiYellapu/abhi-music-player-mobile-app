@@ -167,12 +167,9 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.infoSection}>
-        <Text style={styles.infoTitle}>Demo Music Player</Text>
+        <Text style={styles.infoTitle}>Abhi's Music Player</Text>
         <Text style={styles.infoText}>
-          This is a demo music player built with Expo and React Native. 
-          It showcases modern UI patterns and music player functionality. 
-          In a production app, you would integrate with device storage and 
-          implement additional features like background playback and media session controls.
+          This is a music player.
         </Text>
       </View>
     </SafeAreaView>
