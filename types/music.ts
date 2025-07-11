@@ -33,4 +33,4 @@ export interface PlaybackState {
 
 export type SortOption = 'title' | 'artist' | 'album' | 'duration' | 'size' | 'dateAdded';
 export type SortDirection = 'asc' | 'desc';
-export type FilterType = 'mp3' | 'wav' | 'aac' | 'all';
+export type FilterType = 'mp3' | 'wav' | 'aac' | 'all' | 'queue';

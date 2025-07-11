@@ -5,6 +5,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { useMusicContext } from '@/contexts/MusicContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Song } from '@/types/music';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function SearchScreen() {
   const { songs, playSong } = useMusicContext();
@@ -25,18 +26,19 @@ export default function SearchScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: '#0a0a0a',
     },
     header: {
       paddingTop: 20,
-      paddingHorizontal: 16,
+      paddingHorizontal: 20,
       paddingBottom: 16,
     },
     title: {
-      fontSize: 28,
+      fontSize: 24,
       fontFamily: 'Inter-Bold',
-      color: colors.text,
+      color: '#fff',
       marginBottom: 20,
+      letterSpacing: -0.5,
     },
     emptyContainer: {
       flex: 1,
@@ -45,29 +47,30 @@ export default function SearchScreen() {
       paddingHorizontal: 32,
     },
     emptyText: {
-      fontSize: 18,
-      fontFamily: 'Inter-Medium',
-      color: colors.textMuted,
+      fontSize: 20,
+      fontFamily: 'Inter-Bold',
+      color: 'rgba(255, 255, 255, 0.8)',
       textAlign: 'center',
-      marginBottom: 8,
+      marginBottom: 12,
     },
     emptySubtext: {
-      fontSize: 14,
+      fontSize: 16,
       fontFamily: 'Inter-Regular',
-      color: colors.textMuted,
+      color: 'rgba(255, 255, 255, 0.6)',
       textAlign: 'center',
+      lineHeight: 24,
     },
     resultsHeader: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 20,
       paddingVertical: 12,
-      backgroundColor: colors.surface,
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
       borderBottomWidth: 1,
-      borderBottomColor: colors.border,
+      borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     },
     resultsText: {
       fontSize: 14,
       fontFamily: 'Inter-Medium',
-      color: colors.textSecondary,
+      color: 'rgba(255, 255, 255, 0.7)',
     },
   });
 
@@ -99,33 +102,41 @@ export default function SearchScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Search</Text>
-      </View>
-
-      <SearchBar
-        value={localSearchQuery}
-        onChangeText={setLocalSearchQuery}
-        placeholder="What do you want to listen to?"
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#1a1a2e', '#16213e']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       />
-
-      {searchResults.length > 0 && localSearchQuery && (
-        <View style={styles.resultsHeader}>
-          <Text style={styles.resultsText}>
-            {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{localSearchQuery}"
-          </Text>
+      <View style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Search</Text>
         </View>
-      )}
 
-      <FlatList
-        data={searchResults}
-        keyExtractor={(item) => item.id}
-        renderItem={renderSongItem}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        ListEmptyComponent={EmptyState}
-      />
-    </SafeAreaView>
+        <SearchBar
+          value={localSearchQuery}
+          onChangeText={setLocalSearchQuery}
+          placeholder="What do you want to listen to?"
+        />
+
+        {searchResults.length > 0 && localSearchQuery && (
+          <View style={styles.resultsHeader}>
+            <Text style={styles.resultsText}>
+              {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{localSearchQuery}"
+            </Text>
+          </View>
+        )}
+
+        <FlatList
+          data={searchResults}
+          keyExtractor={(item) => item.id}
+          renderItem={renderSongItem}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 160, paddingTop: 20 }}
+          ListEmptyComponent={EmptyState}
+        />
+      </View>
+    </View>
   );
 }

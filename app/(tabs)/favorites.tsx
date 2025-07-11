@@ -4,6 +4,7 @@ import { SongItem } from '@/components/SongItem';
 import { useMusicContext } from '@/contexts/MusicContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Song } from '@/types/music';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function FavoritesScreen() {
   const { favorites, playSong } = useMusicContext();
@@ -12,23 +13,24 @@ export default function FavoritesScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: '#0a0a0a',
     },
     header: {
       paddingTop: 20,
-      paddingHorizontal: 16,
+      paddingHorizontal: 20,
       paddingBottom: 16,
     },
     title: {
-      fontSize: 28,
+      fontSize: 24,
       fontFamily: 'Inter-Bold',
-      color: colors.text,
+      color: '#fff',
       marginBottom: 8,
+      letterSpacing: -0.5,
     },
     subtitle: {
       fontSize: 16,
-      fontFamily: 'Inter-Regular',
-      color: colors.textSecondary,
+      fontFamily: 'Inter-Medium',
+      color: 'rgba(255, 255, 255, 0.7)',
     },
     emptyContainer: {
       flex: 1,
@@ -37,17 +39,18 @@ export default function FavoritesScreen() {
       paddingHorizontal: 32,
     },
     emptyText: {
-      fontSize: 18,
-      fontFamily: 'Inter-Medium',
-      color: colors.textMuted,
+      fontSize: 20,
+      fontFamily: 'Inter-Bold',
+      color: 'rgba(255, 255, 255, 0.8)',
       textAlign: 'center',
-      marginBottom: 8,
+      marginBottom: 12,
     },
     emptySubtext: {
-      fontSize: 14,
+      fontSize: 16,
       fontFamily: 'Inter-Regular',
-      color: colors.textMuted,
+      color: 'rgba(255, 255, 255, 0.6)',
       textAlign: 'center',
+      lineHeight: 24,
     },
   });
 
@@ -70,22 +73,30 @@ export default function FavoritesScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Favorites</Text>
-        <Text style={styles.subtitle}>
-          {favorites.length} song{favorites.length !== 1 ? 's' : ''}
-        </Text>
-      </View>
-
-      <FlatList
-        data={favorites}
-        keyExtractor={(item) => item.id}
-        renderItem={renderSongItem}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        ListEmptyComponent={EmptyState}
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#1a1a2e', '#16213e']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       />
-    </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Favorites</Text>
+          <Text style={styles.subtitle}>
+            {favorites.length} song{favorites.length !== 1 ? 's' : ''}
+          </Text>
+        </View>
+
+        <FlatList
+          data={favorites}
+          keyExtractor={(item) => item.id}
+          renderItem={renderSongItem}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 160, paddingTop: 20 }}
+          ListEmptyComponent={EmptyState}
+        />
+      </View>
+    </View>
   );
 }

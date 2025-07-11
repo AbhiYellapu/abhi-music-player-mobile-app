@@ -13,6 +13,7 @@ import {
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { MusicProvider } from '@/contexts/MusicContext';
+import { Audio } from 'expo-av';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -41,8 +42,8 @@ export default function RootLayout() {
         ]}>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="+not-found" />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="player" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />
         </View>

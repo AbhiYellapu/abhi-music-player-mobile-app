@@ -19,34 +19,34 @@ export interface ThemeColors {
 }
 
 const lightTheme: ThemeColors = {
-  background: '#FFFFFF',
-  surface: '#F8F9FA',
+  background: '#FFFFFF', // pure white
+  surface: '#F5F5F5', // lighter surface for chips
   surfaceElevated: '#FFFFFF',
-  text: '#1A1A1A',
-  textSecondary: '#6B7280',
-  textMuted: '#9CA3AF',
-  primary: '#3B82F6',
-  primaryDark: '#2563EB',
-  accent: '#8B5CF6',
+  text: '#181818', // Spotify dark text
+  textSecondary: '#535353',
+  textMuted: '#B3B3B3',
+  primary: '#1DB954', // Spotify green
+  primaryDark: '#169443',
+  accent: '#1ED760',
   border: '#E5E7EB',
-  success: '#10B981',
+  success: '#1DB954',
   warning: '#F59E0B',
   error: '#EF4444',
-  overlay: 'rgba(0, 0, 0, 0.5)'
+  overlay: 'rgba(0, 0, 0, 0.08)'
 };
 
 const darkTheme: ThemeColors = {
-  background: '#0F0F0F',
-  surface: '#1A1A1A',
-  surfaceElevated: '#262626',
+  background: '#000000', // true black
+  surface: '#181818', // Spotify dark surface
+  surfaceElevated: '#222326', // Spotify dark elevated
   text: '#FFFFFF',
-  textSecondary: '#D1D5DB',
-  textMuted: '#9CA3AF',
-  primary: '#3B82F6',
-  primaryDark: '#2563EB',
-  accent: '#8B5CF6',
-  border: '#374151',
-  success: '#10B981',
+  textSecondary: '#B3B3B3',
+  textMuted: '#535353',
+  primary: '#1DB954', // Spotify green
+  primaryDark: '#169443',
+  accent: '#1ED760',
+  border: '#282828',
+  success: '#1DB954',
   warning: '#F59E0B',
   error: '#EF4444',
   overlay: 'rgba(0, 0, 0, 0.7)'

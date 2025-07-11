@@ -1,31 +1,26 @@
-import * as MediaLibrary from 'expo-media-library';
-import { Song } from '@/types/music';
+import MusicFiles from 'react-native-get-music-files';
 
-export const loadDeviceSongs = async (): Promise<Song[]> => {
-  const { status } = await MediaLibrary.requestPermissionsAsync();
-  if (status !== 'granted') {
-    console.warn('Media library permissions not granted.');
-    return [];
-  }
-
-  const media = await MediaLibrary.getAssetsAsync({
-    mediaType: 'audio',
-    first: 1000,
-    sortBy: [[MediaLibrary.SortBy.creationTime, false]],
+export const loadDeviceSongsWithArtwork = async () => {
+  const songs = await MusicFiles.getAll({
+    blured: false,
+    artist: true,
+    duration: true,
+    cover: true, // This gets the artwork
+    genre: true,
+    title: true,
+    minimumSongDuration: 10000,
+    fields: ['title', 'album', 'genre', 'lyrics', 'artwork', 'duration'] // artwork is the key
   });
 
-  const songs: Song[] = media.assets.map((asset, index) => ({
-    id: asset.id || `${index + 1}`,
-    title: asset.filename.replace(/\.[^/.]+$/, ''), // remove extension
-    artist: 'Unknown Artist',
-    album: 'Unknown Album',
-    duration: Math.floor(asset.duration ?? 0),
-    size: asset.duration ? Math.floor(asset.duration * 16000) : 0, // estimated size
-    fileType: asset.filename.split('.').pop() ?? 'mp3',
-    dateAdded: new Date(asset.modificationTime ?? Date.now()).toISOString().split('T')[0],
-    artwork: 'https://via.placeholder.com/300x300.png?text=No+Artwork',
-    url: asset.uri,
+  // Each song.artwork is a file URI to the image
+  return songs.map(song => ({
+    id: song.id,
+    title: song.title,
+    artist: song.author,
+    album: song.album,
+    duration: song.duration,
+    artwork: song.cover, // This is a file URI
+    url: song.path,
+    // ...other fields
   }));
-
-  return songs;
 }; 

@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import { Song, Playlist, PlaybackState, SortOption, SortDirection, FilterType } from '@/types/music';
-import { loadDeviceSongs } from '@/lib/loadDeviceSongs';
+import { loadDeviceSongsWithArtwork } from '@/lib/loadDeviceSongs';
 
 interface MusicContextType {
   songs: Song[];
@@ -65,7 +65,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const fetchSongs = async () => {
       try {
-        const deviceSongs = await loadDeviceSongs();
+        const deviceSongs = await loadDeviceSongsWithArtwork();
         setSongs(deviceSongs || []);
       } catch (error) {
         console.error('Error loading device songs:', error);

@@ -5,6 +5,7 @@ import { SongItem } from '@/components/SongItem';
 import { useMusicContext } from '@/contexts/MusicContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Playlist, Song } from '@/types/music';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function PlaylistsScreen() {
   const { playlists, createPlaylist, deletePlaylist, playSong, removeFromPlaylist } = useMusicContext();
@@ -16,55 +17,59 @@ export default function PlaylistsScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: '#0a0a0a',
     },
     header: {
       paddingTop: 20,
-      paddingHorizontal: 16,
+      paddingHorizontal: 20,
       paddingBottom: 16,
     },
     title: {
-      fontSize: 28,
+      fontSize: 24,
       fontFamily: 'Inter-Bold',
-      color: colors.text,
+      color: '#fff',
       marginBottom: 8,
+      letterSpacing: -0.5,
     },
     subtitle: {
       fontSize: 16,
-      fontFamily: 'Inter-Regular',
-      color: colors.textSecondary,
+      fontFamily: 'Inter-Medium',
+      color: 'rgba(255, 255, 255, 0.7)',
     },
     createButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      backgroundColor: '#1ed760',
       paddingHorizontal: 20,
       paddingVertical: 16,
-      borderRadius: 12,
-      marginHorizontal: 16,
+      borderRadius: 16,
+      marginHorizontal: 20,
       marginBottom: 20,
     },
     createButtonText: {
       fontSize: 16,
       fontFamily: 'Inter-Bold',
-      color: colors.background,
+      color: '#000',
       marginLeft: 8,
     },
     playlistItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surface,
-      paddingHorizontal: 16,
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      paddingHorizontal: 20,
       paddingVertical: 16,
-      marginHorizontal: 16,
+      marginHorizontal: 20,
       marginBottom: 12,
-      borderRadius: 12,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.1)',
     },
     playlistIcon: {
       width: 48,
       height: 48,
-      backgroundColor: colors.accent,
-      borderRadius: 8,
+      backgroundColor: '#1ed760',
+      borderRadius: 12,
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: 12,
@@ -75,13 +80,13 @@ export default function PlaylistsScreen() {
     playlistName: {
       fontSize: 16,
       fontFamily: 'Inter-Bold',
-      color: colors.text,
+      color: '#fff',
       marginBottom: 4,
     },
     playlistCount: {
       fontSize: 14,
       fontFamily: 'Inter-Regular',
-      color: colors.textSecondary,
+      color: 'rgba(255, 255, 255, 0.7)',
     },
     playlistActions: {
       padding: 8,
@@ -93,17 +98,18 @@ export default function PlaylistsScreen() {
       paddingHorizontal: 32,
     },
     emptyText: {
-      fontSize: 18,
-      fontFamily: 'Inter-Medium',
-      color: colors.textMuted,
+      fontSize: 20,
+      fontFamily: 'Inter-Bold',
+      color: 'rgba(255, 255, 255, 0.8)',
       textAlign: 'center',
-      marginBottom: 8,
+      marginBottom: 12,
     },
     emptySubtext: {
-      fontSize: 14,
+      fontSize: 16,
       fontFamily: 'Inter-Regular',
-      color: colors.textMuted,
+      color: 'rgba(255, 255, 255, 0.6)',
       textAlign: 'center',
+      lineHeight: 24,
     },
     modalOverlay: {
       flex: 1,
@@ -269,7 +275,7 @@ export default function PlaylistsScreen() {
       activeOpacity={0.7}
     >
       <View style={styles.playlistIcon}>
-        <Music size={24} color={colors.background} />
+        <Music size={24} color="#000" />
       </View>
       <View style={styles.playlistInfo}>
         <Text style={styles.playlistName}>{item.name}</Text>
@@ -282,7 +288,7 @@ export default function PlaylistsScreen() {
         onPress={() => handlePlaylistOptions(item)}
         activeOpacity={0.7}
       >
-        <MoreHorizontal size={20} color={colors.textMuted} />
+        <MoreHorizontal size={20} color="rgba(255, 255, 255, 0.6)" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -308,74 +314,92 @@ export default function PlaylistsScreen() {
 
   if (selectedPlaylist) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.playlistDetailHeader}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => setSelectedPlaylist(null)}
-            activeOpacity={0.7}
-          >
-            <Text style={{ color: colors.primary, fontSize: 16, fontFamily: 'Inter-Medium' }}>
-              ← Back
-            </Text>
-          </TouchableOpacity>
-          <Text style={styles.playlistDetailTitle}>{selectedPlaylist.name}</Text>
-          <View style={styles.playlistDetailActions}>
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#0a0a0a', '#1a1a2e', '#16213e']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+        <View style={{ flex: 1 }}>
+          <View style={styles.playlistDetailHeader}>
             <TouchableOpacity
-              style={styles.headerActionButton}
-              onPress={() => handlePlaylistOptions(selectedPlaylist)}
+              style={styles.backButton}
+              onPress={() => setSelectedPlaylist(null)}
               activeOpacity={0.7}
             >
-              <MoreHorizontal size={20} color={colors.textMuted} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <FlatList
-          data={selectedPlaylist.songs}
-          keyExtractor={(item) => item.id}
-          renderItem={renderSongItem}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>This playlist is empty</Text>
-              <Text style={styles.emptySubtext}>
-                Add songs to this playlist from your library
+              <Text style={{ color: '#1ed760', fontSize: 16, fontFamily: 'Inter-Medium' }}>
+                ← Back
               </Text>
+            </TouchableOpacity>
+            <Text style={styles.playlistDetailTitle}>{selectedPlaylist.name}</Text>
+            <View style={styles.playlistDetailActions}>
+              <TouchableOpacity
+                style={styles.headerActionButton}
+                onPress={() => handlePlaylistOptions(selectedPlaylist)}
+                activeOpacity={0.7}
+              >
+                <MoreHorizontal size={20} color="rgba(255, 255, 255, 0.6)" />
+              </TouchableOpacity>
             </View>
-          )}
-        />
-      </SafeAreaView>
+          </View>
+
+          <FlatList
+            data={selectedPlaylist.songs}
+            keyExtractor={(item) => item.id}
+            renderItem={renderSongItem}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 160, paddingTop: 20 }}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>This playlist is empty</Text>
+                <Text style={styles.emptySubtext}>
+                  Add songs to this playlist from your library
+                </Text>
+              </View>
+            )}
+          />
+        </View>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Playlists</Text>
-        <Text style={styles.subtitle}>
-          {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
-        </Text>
+    <>
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#0a0a0a', '#1a1a2e', '#16213e']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+        <View style={{ flex: 1 }}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Playlists</Text>
+            <Text style={styles.subtitle}>
+              {playlists.length} playlist{playlists.length !== 1 ? 's' : ''}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => setIsCreateModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Plus size={20} color="#000" />
+            <Text style={styles.createButtonText}>Create New Playlist</Text>
+          </TouchableOpacity>
+
+          <FlatList
+            data={playlists}
+            keyExtractor={(item) => item.id}
+            renderItem={renderPlaylistItem}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 160, paddingTop: 20 }}
+            ListEmptyComponent={EmptyState}
+          />
+        </View>
       </View>
-
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={() => setIsCreateModalVisible(true)}
-        activeOpacity={0.8}
-      >
-        <Plus size={20} color={colors.background} />
-        <Text style={styles.createButtonText}>Create New Playlist</Text>
-      </TouchableOpacity>
-
-      <FlatList
-        data={playlists}
-        keyExtractor={(item) => item.id}
-        renderItem={renderPlaylistItem}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        ListEmptyComponent={EmptyState}
-      />
 
       <Modal
         visible={isCreateModalVisible}
@@ -391,7 +415,7 @@ export default function PlaylistsScreen() {
               value={newPlaylistName}
               onChangeText={setNewPlaylistName}
               placeholder="Enter playlist name"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor="rgba(255, 255, 255, 0.6)"
               autoFocus
             />
             <View style={styles.modalButtons}>
@@ -420,6 +444,6 @@ export default function PlaylistsScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }

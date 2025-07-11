@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView } from 'react-native';
-import { Filter, ChevronDown, Check } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated } from 'react-native';
+import { Filter, ChevronDown, Check, ArrowUpDown, Music, Clock, Calendar, User, Disc } from 'lucide-react-native';
 import { SortOption, SortDirection, FilterType } from '@/types/music';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -20,256 +20,218 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   onFilterChange,
 }) => {
   const { colors } = useTheme();
-  const [isVisible, setIsVisible] = useState(false);
+  const [showSortOptions, setShowSortOptions] = useState(false);
 
-  const sortOptions: { key: SortOption; label: string }[] = [
-    { key: 'title', label: 'Title' },
-    { key: 'artist', label: 'Artist' },
-    { key: 'album', label: 'Album' },
-    { key: 'duration', label: 'Duration' },
-    { key: 'size', label: 'File Size' },
-    { key: 'dateAdded', label: 'Date Added' },
+  const sortOptions: { key: SortOption; label: string; icon: any }[] = [
+    { key: 'title', label: 'Title', icon: Music },
+    { key: 'artist', label: 'Artist', icon: User },
+    { key: 'album', label: 'Album', icon: Disc },
+    { key: 'duration', label: 'Duration', icon: Clock },
+    { key: 'dateAdded', label: 'Date Added', icon: Calendar },
   ];
 
-  const filterOptions: { key: FilterType; label: string }[] = [
-    { key: 'all', label: 'All Files' },
-    { key: 'mp3', label: 'MP3' },
-    { key: 'wav', label: 'WAV' },
-    { key: 'aac', label: 'AAC' },
-    { key: 'queue', label: 'Queue (Playing Next)' },
+  const filterOptions: { key: FilterType; label: string; color: string }[] = [
+    { key: 'all', label: 'All', color: '#6366f1' },
+    { key: 'mp3', label: 'MP3', color: '#10b981' },
+    { key: 'wav', label: 'WAV', color: '#f59e0b' },
+    { key: 'aac', label: 'AAC', color: '#ef4444' },
   ];
 
   const styles = StyleSheet.create({
-    trigger: {
+    container: {
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    header: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surface,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 8,
-      marginHorizontal: 16,
-      marginBottom: 16,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    triggerText: {
-      flex: 1,
-      fontSize: 14,
-      color: colors.text,
-      fontFamily: 'Inter-Medium',
-      marginLeft: 8,
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: colors.overlay,
-      justifyContent: 'flex-end',
-    },
-    modalContent: {
-      backgroundColor: colors.background,
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16,
-      maxHeight: '70%',
-    },
-    modalHeader: {
-      padding: 20,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontFamily: 'Inter-Bold',
-      color: colors.text,
-      textAlign: 'center',
-    },
-    section: {
-      padding: 20,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontFamily: 'Inter-Bold',
-      color: colors.text,
+      justifyContent: 'space-between',
       marginBottom: 12,
     },
-    optionRow: {
+    headerTitle: {
+      fontSize: 20,
+      fontFamily: 'Inter-Bold',
+      color: '#fff',
+      letterSpacing: 0.5,
+    },
+    sortButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(30, 215, 96, 0.15)',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 25,
+      borderWidth: 1,
+      borderColor: 'rgba(30, 215, 96, 0.3)',
+    },
+    sortButtonText: {
+      color: '#1ed760',
+      fontFamily: 'Inter-SemiBold',
+      fontSize: 14,
+      marginRight: 8,
+    },
+    filterRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    filterChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    filterChipActive: {
+      backgroundColor: 'rgba(30, 215, 96, 0.2)',
+      borderColor: '#1ed760',
+    },
+    filterChipText: {
+      color: 'rgba(255, 255, 255, 0.8)',
+      fontFamily: 'Inter-Medium',
+      fontSize: 13,
+    },
+    filterChipTextActive: {
+      color: '#1ed760',
+    },
+    sortOptionsContainer: {
+      backgroundColor: 'rgba(0, 0, 0, 0.95)',
+      borderRadius: 16,
+      padding: 16,
+      marginTop: 12,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    sortOption: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 8,
+      paddingHorizontal: 8,
+      borderRadius: 12,
+      marginBottom: 4,
     },
-    optionText: {
+    sortOptionActive: {
+      backgroundColor: 'rgba(30, 215, 96, 0.15)',
+    },
+    sortOptionIcon: {
+      marginRight: 12,
+    },
+    sortOptionText: {
       flex: 1,
+      color: '#fff',
+      fontFamily: 'Inter-Medium',
       fontSize: 14,
-      fontFamily: 'Inter-Regular',
-      color: colors.text,
     },
-    directionButtons: {
-      flexDirection: 'row',
-      marginTop: 8,
+    sortOptionActiveText: {
+      color: '#1ed760',
+      fontFamily: 'Inter-SemiBold',
     },
     directionButton: {
-      flex: 1,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      borderRadius: 6,
-      borderWidth: 1,
-      borderColor: colors.border,
-      marginHorizontal: 4,
-      alignItems: 'center',
-    },
-    directionButtonActive: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    directionButtonText: {
-      fontSize: 12,
-      fontFamily: 'Inter-Medium',
-      color: colors.text,
-    },
-    directionButtonTextActive: {
-      color: colors.background,
-    },
-    closeButton: {
-      margin: 20,
-      backgroundColor: colors.primary,
-      paddingVertical: 16,
-      borderRadius: 12,
-      alignItems: 'center',
-    },
-    closeButtonText: {
-      fontSize: 16,
-      fontFamily: 'Inter-Bold',
-      color: colors.background,
+      padding: 8,
+      borderRadius: 8,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
   });
 
   const getCurrentSortLabel = () => {
     const option = sortOptions.find(opt => opt.key === sortBy);
-    const direction = sortDirection === 'asc' ? '↑' : '↓';
-    return `${option?.label} ${direction}`;
+    return option?.label || 'Title';
   };
 
-  const getCurrentFilterLabel = () => {
-    const option = filterOptions.find(opt => opt.key === filterType);
-    return option?.label || 'All Files';
+  const toggleSortDirection = () => {
+    const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    onSortChange(sortBy, newDirection);
   };
 
   return (
-    <>
-      <TouchableOpacity
-        style={styles.trigger}
-        onPress={() => setIsVisible(true)}
-        activeOpacity={0.7}
-      >
-        <Filter size={20} color={colors.textMuted} />
-        <Text style={styles.triggerText}>
-          {getCurrentSortLabel()} • {getCurrentFilterLabel()}
-        </Text>
-        <ChevronDown size={20} color={colors.textMuted} />
-      </TouchableOpacity>
-
-      <Modal
-        visible={isVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setIsVisible(false)}
-      >
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Library</Text>
         <TouchableOpacity
-          style={styles.modalOverlay}
-          onPress={() => setIsVisible(false)}
-          activeOpacity={1}
+          style={styles.sortButton}
+          onPress={() => setShowSortOptions(!showSortOptions)}
+          activeOpacity={0.8}
         >
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Sort & Filter</Text>
-            </View>
+          <Text style={styles.sortButtonText}>{getCurrentSortLabel()}</Text>
+          <ArrowUpDown size={16} color="#1ed760" />
+        </TouchableOpacity>
+      </View>
 
-            <ScrollView>
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Sort By</Text>
-                {sortOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option.key}
-                    style={[
-                      styles.optionRow,
-                      sortBy === option.key && { backgroundColor: colors.surface }
-                    ]}
-                    onPress={() => onSortChange(option.key, sortDirection)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.optionText}>{option.label}</Text>
-                    {sortBy === option.key && (
-                      <Check size={20} color={colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-
-                <View style={styles.directionButtons}>
-                  <TouchableOpacity
-                    style={[
-                      styles.directionButton,
-                      sortDirection === 'asc' && styles.directionButtonActive
-                    ]}
-                    onPress={() => onSortChange(sortBy, 'asc')}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[
-                      styles.directionButtonText,
-                      sortDirection === 'asc' && styles.directionButtonTextActive
-                    ]}>
-                      Ascending
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.directionButton,
-                      sortDirection === 'desc' && styles.directionButtonActive
-                    ]}
-                    onPress={() => onSortChange(sortBy, 'desc')}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[
-                      styles.directionButtonText,
-                      sortDirection === 'desc' && styles.directionButtonTextActive
-                    ]}>
-                      Descending
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Filter by File Type</Text>
-                {filterOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option.key}
-                    style={[
-                      styles.optionRow,
-                      filterType === option.key && { backgroundColor: colors.surface }
-                    ]}
-                    onPress={() => onFilterChange(option.key)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.optionText}>{option.label}</Text>
-                    {filterType === option.key && (
-                      <Check size={20} color={colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterRow}
+      >
+        {filterOptions.map(option => {
+          const isActive = filterType === option.key;
+          
+          return (
             <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setIsVisible(false)}
+              key={option.key}
+              style={[styles.filterChip, isActive && styles.filterChipActive]}
+              onPress={() => onFilterChange(option.key)}
               activeOpacity={0.8}
             >
-              <Text style={styles.closeButtonText}>Done</Text>
+              <Text style={[
+                styles.filterChipText,
+                isActive && styles.filterChipTextActive
+              ]}>
+                {option.label}
+              </Text>
             </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-    </>
+          );
+        })}
+      </ScrollView>
+
+      {showSortOptions && (
+        <View style={styles.sortOptionsContainer}>
+          {sortOptions.map(option => {
+            const IconComponent = option.icon;
+            const isActive = sortBy === option.key;
+            
+            return (
+              <TouchableOpacity
+                key={option.key}
+                style={[styles.sortOption, isActive && styles.sortOptionActive]}
+                onPress={() => {
+                  onSortChange(option.key, sortDirection);
+                  setShowSortOptions(false);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={styles.sortOptionIcon}>
+                  <IconComponent 
+                    size={18} 
+                    color={isActive ? '#1ed760' : 'rgba(255, 255, 255, 0.6)'} 
+                  />
+                </View>
+                <Text style={[
+                  styles.sortOptionText,
+                  isActive && styles.sortOptionActiveText
+                ]}>
+                  {option.label}
+                </Text>
+                {isActive && (
+                  <TouchableOpacity
+                    style={styles.directionButton}
+                    onPress={toggleSortDirection}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ color: '#1ed760', fontSize: 12 }}>
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+    </View>
   );
 };

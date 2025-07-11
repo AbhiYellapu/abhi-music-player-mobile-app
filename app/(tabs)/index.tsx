@@ -25,33 +25,13 @@ export default function LibraryScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
-    },
-    header: {
-      paddingTop: 32,
-      paddingHorizontal: 20,
-      paddingBottom: 8,
-      backgroundColor: colors.background,
-    },
-    title: {
-      fontSize: 32,
-      fontFamily: 'Inter-Bold',
-      color: colors.text,
-      marginBottom: 2,
-      letterSpacing: -1,
-    },
-    subtitle: {
-      fontSize: 15,
-      fontFamily: 'Inter-Medium',
-      color: colors.textSecondary,
-      marginBottom: 12,
-      letterSpacing: 0.2,
+      backgroundColor: '#0a0a0a',
     },
     divider: {
       height: 1,
-      backgroundColor: colors.border,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
       marginHorizontal: 20,
-      opacity: 0.12,
+      opacity: 0.3,
     },
     emptyContainer: {
       flex: 1,
@@ -60,17 +40,18 @@ export default function LibraryScreen() {
       paddingHorizontal: 32,
     },
     emptyText: {
-      fontSize: 18,
-      fontFamily: 'Inter-Medium',
-      color: colors.textMuted,
+      fontSize: 20,
+      fontFamily: 'Inter-Bold',
+      color: 'rgba(255, 255, 255, 0.8)',
       textAlign: 'center',
-      marginBottom: 8,
+      marginBottom: 12,
     },
     emptySubtext: {
-      fontSize: 14,
+      fontSize: 16,
       fontFamily: 'Inter-Regular',
-      color: colors.textMuted,
+      color: 'rgba(255, 255, 255, 0.6)',
       textAlign: 'center',
+      lineHeight: 24,
     },
   });
 
@@ -91,43 +72,34 @@ export default function LibraryScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={styles.container}>
       <LinearGradient
-        colors={[colors.background, '#1e215d', '#181a2a']}
+        colors={['#0a0a0a', '#1a1a2e', '#16213e']}
         style={StyleSheet.absoluteFill}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       />
-      <View style={styles.header}>
-        <Text style={styles.title}>Your Library</Text>
-        <Text style={styles.subtitle}>
-          {filteredSongs.length} song{filteredSongs.length !== 1 ? 's' : ''}
-        </Text>
+      <View style={{ flex: 1 }}>
+        {/* FilterPanel at the top */}
+        <FilterPanel
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          filterType={filterType}
+          onSortChange={setSortBy}
+          onFilterChange={setFilterType}
+        />
+        {/* Song list fills the rest */}
+        <FlatList
+          style={{ flex: 1 }}
+          data={filteredSongs}
+          keyExtractor={(item) => item.id}
+          renderItem={renderSongItem}
+          ItemSeparatorComponent={() => <View style={styles.divider} />}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 160, paddingTop: 20 }}
+          ListEmptyComponent={EmptyState}
+        />
       </View>
-
-      <SearchBar
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        placeholder="Search your music library..."
-      />
-
-      <FilterPanel
-        sortBy={sortBy}
-        sortDirection={sortDirection}
-        filterType={filterType}
-        onSortChange={setSortBy}
-        onFilterChange={setFilterType}
-      />
-
-      <FlatList
-        data={filteredSongs}
-        keyExtractor={(item) => item.id}
-        renderItem={renderSongItem}
-        ItemSeparatorComponent={() => <View style={styles.divider} />}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        ListEmptyComponent={EmptyState}
-      />
-    </SafeAreaView>
+    </View>
   );
 }

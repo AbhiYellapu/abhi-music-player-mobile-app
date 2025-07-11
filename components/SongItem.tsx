@@ -25,6 +25,7 @@ export const SongItem: React.FC<SongItemProps> = ({
   const [showPlaylistModal, setShowPlaylistModal] = React.useState(false);
   const [showCreatePlaylist, setShowCreatePlaylist] = React.useState(false);
   const [newPlaylistName, setNewPlaylistName] = React.useState('');
+  const [showActions, setShowActions] = React.useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   
   const isFavorite = favorites.some(f => f.id === song.id);
@@ -78,39 +79,53 @@ export const SongItem: React.FC<SongItemProps> = ({
 
   const styles = StyleSheet.create({
     animatedContainer: {
-      marginHorizontal: 0,
+      marginHorizontal: 16,
+      marginVertical: 4,
     },
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      backgroundColor: isCurrentSong ? colors.surfaceElevated : colors.surface,
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      paddingHorizontal: 12,
+      paddingVertical: 12,
       borderRadius: 16,
-      marginHorizontal: 4,
-      marginVertical: 6,
-      shadowColor: colors.text,
-      shadowOpacity: 0.06,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
       shadowRadius: 8,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 2,
+      elevation: 8,
+      minHeight: 72,
+    },
+    containerPlaying: {
+      backgroundColor: 'rgba(30, 215, 96, 0.15)',
+      borderColor: 'rgba(30, 215, 96, 0.3)',
     },
     indexContainer: {
-      width: 32,
+      width: 28,
       alignItems: 'center',
-      marginRight: 0, // Remove extra margin for a tighter look
+      marginRight: 8,
       justifyContent: 'center',
     },
     indexText: {
-      color: colors.textMuted,
-      fontSize: 14,
-      fontFamily: 'Inter-Regular',
+      color: 'rgba(255, 255, 255, 0.6)',
+      fontSize: 16,
+      fontFamily: 'Inter-Bold',
+    },
+    indexTextPlaying: {
+      color: '#1ed760',
+    },
+    emptyIndex: {
+      width: 28,
+      height: 28,
     },
     artwork: {
-      width: 56,
-      height: 56,
+      width: 44,
+      height: 44,
       borderRadius: 10,
-      marginRight: 14,
+      marginRight: 10,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     playIconContainer: {
       position: 'absolute',
@@ -118,31 +133,34 @@ export const SongItem: React.FC<SongItemProps> = ({
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: colors.overlay,
-      borderRadius: 10,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      borderRadius: 12,
       justifyContent: 'center',
       alignItems: 'center',
     },
     artworkShadowWrap: {
-      shadowColor: colors.primary,
-      shadowOpacity: 0.18,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 6,
-      borderRadius: 12,
-      marginRight: 10,
+      marginRight: 0,
       backgroundColor: 'transparent',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+      borderRadius: 12,
     },
     content: {
       flex: 1,
-      marginRight: 8,
+      marginRight: 6,
     },
     title: {
-      fontSize: 17,
-      fontFamily: 'Inter-SemiBold',
-      color: isCurrentSong ? colors.primary : colors.text,
-      marginBottom: 2,
+      fontSize: 15,
+      fontFamily: 'Inter-Bold',
+      color: '#fff',
+      marginBottom: 3,
       letterSpacing: -0.2,
+    },
+    titlePlaying: {
+      color: '#1ed760',
     },
     details: {
       flexDirection: 'row',
@@ -150,21 +168,26 @@ export const SongItem: React.FC<SongItemProps> = ({
       flexWrap: 'wrap',
     },
     detailText: {
-      fontSize: 13,
-      color: colors.textSecondary,
-      fontFamily: 'Inter-Regular',
+      fontSize: 12,
+      color: 'rgba(255, 255, 255, 0.6)',
+      fontFamily: 'Inter-Medium',
+    },
+    detailTextPlaying: {
+      color: 'rgba(30, 215, 96, 0.8)',
     },
     separator: {
-      color: colors.textMuted,
+      color: 'rgba(255, 255, 255, 0.3)',
       marginHorizontal: 4,
     },
     actions: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 6,
     },
     actionButton: {
-      padding: 8,
-      marginLeft: 2,
+      padding: 6,
+      borderRadius: 6,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     modalOverlay: {
       flex: 1,
@@ -293,80 +316,95 @@ export const SongItem: React.FC<SongItemProps> = ({
     <>
       <Animated.View style={[styles.animatedContainer, { transform: [{ scale: scaleAnim }] }]}> 
         <TouchableOpacity
-          style={styles.container}
+          style={[styles.container, isCurrentSong && styles.containerPlaying]}
           onPress={onPlay}
           activeOpacity={0.8}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
         >
-          {/* Replace serial number with music note icon for queue style */}
           <View style={styles.indexContainer}>
-            <Music size={20} color={colors.textMuted} />
+            {showIndex && index !== undefined ? (
+              <Text style={[styles.indexText, isCurrentSong && styles.indexTextPlaying]}>
+                {index + 1}
+              </Text>
+            ) : (
+              <View style={styles.emptyIndex} />
+            )}
           </View>
           <View style={styles.artworkShadowWrap}>
             <Image source={{ uri: song.artwork }} style={styles.artwork} />
             {isPlaying && (
               <View style={styles.playIconContainer}>
-                <Play size={20} color={colors.primary} fill={colors.primary} />
+                <Play size={20} color="#1ed760" fill="#1ed760" />
               </View>
             )}
           </View>
           <View style={styles.content}>
-            <Text style={styles.title} numberOfLines={1}>
+            <Text style={[styles.title, isCurrentSong && styles.titlePlaying]} numberOfLines={1}>
               {song.title}
             </Text>
             <View style={styles.details}>
-              <Text style={styles.detailText} numberOfLines={1}>
+              <Text style={[styles.detailText, isCurrentSong && styles.detailTextPlaying]} numberOfLines={1}>
                 {song.artist}
               </Text>
               <Text style={styles.separator}>•</Text>
-              <Text style={styles.detailText} numberOfLines={1}>
+              <Text style={[styles.detailText, isCurrentSong && styles.detailTextPlaying]} numberOfLines={1}>
                 {song.album}
               </Text>
               <Text style={styles.separator}>•</Text>
-              <Text style={styles.detailText}>
+              <Text style={[styles.detailText, isCurrentSong && styles.detailTextPlaying]}>
                 {formatDuration(song.duration)}
-              </Text>
-              <Text style={styles.separator}>•</Text>
-              <Text style={styles.detailText}>
-                {formatFileSize(song.size)}
-              </Text>
-              <Text style={styles.separator}>•</Text>
-              <Text style={styles.detailText}>
-                {song.fileType.toUpperCase()}
               </Text>
             </View>
           </View>
           <View style={styles.actions}>
+            {/* Removed favorite icon button for more space */}
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => toggleFavorite(song.id)}
+              onPress={() => setShowActions(true)}
               activeOpacity={0.7}
             >
-              <Heart
-                size={20}
-                color={isFavorite ? colors.error : colors.textMuted}
-                fill={isFavorite ? colors.error : 'transparent'}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => setShowPlaylistModal(true)}
-              activeOpacity={0.7}
-            >
-              <Plus size={20} color={colors.textMuted} />
-            </TouchableOpacity>
-            {/* Always show three-dot menu */}
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={onMore}
-              activeOpacity={0.7}
-            >
-              <MoreHorizontal size={20} color={colors.textMuted} />
+              <MoreHorizontal size={20} color={'rgba(255, 255, 255, 0.6)'} />
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Animated.View>
+      {/* Three-dot menu modal for actions */}
+      <Modal
+        visible={showActions}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowActions(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: '#222', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 20 }}>
+            <TouchableOpacity
+              style={{ paddingVertical: 16 }}
+              onPress={() => {
+                setShowPlaylistModal(true);
+                setShowActions(false);
+              }}
+            >
+              <Text style={{ color: '#fff', fontSize: 16 }}>Add to Playlist</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ paddingVertical: 16 }}
+              onPress={() => {
+                toggleFavorite(song.id);
+                setShowActions(false);
+              }}
+            >
+              <Text style={{ color: '#fff', fontSize: 16 }}>{isFavorite ? 'Remove from Favorites' : 'Mark as Favorite'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ paddingVertical: 16 }}
+              onPress={() => setShowActions(false)}
+            >
+              <Text style={{ color: '#b3b3b3', fontSize: 16, textAlign: 'center' }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={showPlaylistModal}
